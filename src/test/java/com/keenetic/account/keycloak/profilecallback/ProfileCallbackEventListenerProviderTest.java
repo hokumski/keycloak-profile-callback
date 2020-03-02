@@ -1,6 +1,5 @@
 package com.keenetic.account.keycloak.profilecallback;
 
-import org.apache.http.conn.ConnectTimeoutException;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -18,6 +17,8 @@ public class ProfileCallbackEventListenerProviderTest {
 
     HashMap<String, Object> setting1 = new HashMap<>();
     setting1.put("url", "https://postman-echo.com/post");
+    setting1.put("authHeaderName", "X-KEYCLOAK-TOKEN");
+    setting1.put("authHeaderValue", "test-token-12345");
     setting1.put("timeout", 10000); // good
 
     HashMap<String, Object> setting2 = new HashMap<>();
@@ -30,7 +31,10 @@ public class ProfileCallbackEventListenerProviderTest {
     ProfileCallbackEventListenerProvider pcelp =
         new ProfileCallbackEventListenerProvider(null, callbacks);
     String answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
-    assertTrue(answer.contains("our test payload"));
+    // We don't analyze position, don't load json to object. string.contains is enough
+    // System.out.println(answer);
+    assertTrue(answer.contains("\"data\":{\"this\":\"our test payload\"}"));
+    assertTrue(answer.contains("\"x-keycloak-token\":\"test-token-12345\""));
 
     callbacks = new ArrayList<>();
     callbacks.add(setting2);

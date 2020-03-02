@@ -1,3 +1,20 @@
+/*
+ * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.keenetic.account.keycloak.profilecallback;
 
 import java.net.URI;
@@ -11,6 +28,9 @@ import org.keycloak.events.EventListenerProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
+/**
+ * @author <a href="mailto:hokum@dived.me">Andrey Kotov</a>
+ */
 public class ProfileCallbackEventListenerProviderFactory  implements EventListenerProviderFactory {
 
   public static final String ID = "profile-callback";
@@ -22,9 +42,9 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   }
 
   /**
-   * Loads callback settings from scope config
+   * Loads callback settings from keycloak config
    *
-   * @param scope keycloak config
+   * @param scope part of keycloak config with listener settings
    * @param postfix empty string or string with number, to seek in profile-callback config
    * @return HashMap with callback settings
    */
@@ -43,6 +63,12 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
       int timeout = scope.getInt("timeout" + postfix, -1);
       if (timeout > 0) {
         result.put("timeout", timeout);
+      }
+      String authHeaderName = scope.get("authHeaderName" + postfix, "");
+      String authHeaderValue = scope.get("authHeaderValue" + postfix, "");
+      if (!authHeaderName.equals("")) { // no need to check value, as empty string could be legal value
+        result.put("authHeaderName", authHeaderName);
+        result.put("authHeaderValue", authHeaderValue);
       }
       return result;
     }

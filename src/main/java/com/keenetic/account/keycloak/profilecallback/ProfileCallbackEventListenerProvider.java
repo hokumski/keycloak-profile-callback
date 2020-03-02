@@ -1,3 +1,20 @@
+/*
+ * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.keenetic.account.keycloak.profilecallback;
 
 import java.io.IOException;
@@ -28,6 +45,9 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.ConnectTimeoutException;
 
 
+/**
+ * @author <a href="mailto:hokum@dived.me">Andrey Kotov</a>
+ */
 public class ProfileCallbackEventListenerProvider  implements EventListenerProvider {
 
   private KeycloakSession session;
@@ -110,12 +130,20 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
               RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
           post.setConfig(params);
         }
+        if (callback.containsKey("authHeaderName") && callback.containsKey("authHeaderValue")) {
+          post.addHeader((String)callback.get("authHeaderName"), (String)callback.get("authHeaderValue"));
+        }
+        post.addHeader("content-type", "application/json");
 
         // send a JSON data
         post.setEntity(new StringEntity(payload));
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse response = httpClient.execute(post)) {
-          sb.append(EntityUtils.toString(response.getEntity()));
+          String responseEntity = EntityUtils.toString(response.getEntity());
+          if (responseEntity.equals("")) {
+            responseEntity = "[empty response]";
+          }
+          sb.append(responseEntity);
           sb.append("\n");
         }
       } catch (UnknownHostException ignored) {
