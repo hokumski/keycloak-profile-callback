@@ -20,6 +20,8 @@ package com.keenetic.account.keycloak.profilecallback;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.UnknownHostException;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +72,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           System.out.println("logged email/profile update for " + event.getUserId());
           try {
             String userData = getUserInfo(event.getUserId());
-            System.out.println(userData);
+            // System.out.println(userData);
             postCallbacks(userData);
           } catch (IOException ignored) {}
           break;
@@ -95,6 +97,8 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
 
     JsonGenerator generator = this.jsonFactory.createGenerator(jsonObjectWriter);
     generator.writeStartObject();
+    generator.writeStringField("Date",
+            java.time.ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
     generator.writeStringField("Id", userId);
     generator.writeStringField("Email", userModel.getEmail());
     generator.writeStringField("FirstName", userModel.getFirstName());

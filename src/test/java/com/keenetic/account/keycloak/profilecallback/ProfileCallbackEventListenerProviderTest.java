@@ -28,8 +28,8 @@ public class ProfileCallbackEventListenerProviderTest {
     ArrayList<HashMap<String, Object>> callbacks = new ArrayList<>();
     callbacks.add(setting1);
 
-    ProfileCallbackEventListenerProvider pcelp =
-        new ProfileCallbackEventListenerProvider(null, callbacks);
+    ProfileCallbackEventListenerProvider pcelp;
+    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks);
     String answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
     // System.out.println(answer);

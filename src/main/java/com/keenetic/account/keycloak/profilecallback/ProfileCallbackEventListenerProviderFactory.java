@@ -49,7 +49,6 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    * @return HashMap with callback settings
    */
   private HashMap<String, Object> getCallbackSettings(Config.Scope scope, String postfix) {
-
     String callbackToURL = scope.get("callbackTo" + postfix, "");
     if (!callbackToURL.equals("")) {
       HashMap<String, Object> result = new HashMap<>();
@@ -81,15 +80,18 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    */
   @Override
   public void init(Config.Scope scope) {
+    System.out.println("Initializing profile-callback");
     HashMap<String, Object> simpleConfig = getCallbackSettings(scope, "");
     if (simpleConfig != null) {
       callbacks.add(simpleConfig);
+      System.out.println("Found simple configuration with 1 callback");
     } else {
       // iterating until have some
       for (int i = 1; i<=10; i++) {
         HashMap<String, Object> positionalConfig = getCallbackSettings(scope, Integer.toString(i));
         if (positionalConfig != null) {
           callbacks.add(positionalConfig);
+          System.out.println("Found callback configuration #" + i);
         } else {
           break;
         }
