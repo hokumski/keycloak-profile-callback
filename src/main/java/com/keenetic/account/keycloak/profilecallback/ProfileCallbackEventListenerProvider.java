@@ -137,10 +137,10 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         if (callback.containsKey("authHeaderName") && callback.containsKey("authHeaderValue")) {
           post.addHeader((String)callback.get("authHeaderName"), (String)callback.get("authHeaderValue"));
         }
-        post.addHeader("content-type", "application/json");
+        post.addHeader("content-type", "application/json; charset=utf-8");
 
         // send a JSON data
-        post.setEntity(new StringEntity(payload));
+        post.setEntity(new StringEntity(payload, "UTF-8"));
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
             CloseableHttpResponse response = httpClient.execute(post)) {
           String responseEntity = EntityUtils.toString(response.getEntity());

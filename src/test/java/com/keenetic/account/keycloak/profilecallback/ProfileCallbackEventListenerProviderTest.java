@@ -30,10 +30,10 @@ public class ProfileCallbackEventListenerProviderTest {
 
     ProfileCallbackEventListenerProvider pcelp;
     pcelp = new ProfileCallbackEventListenerProvider(null, callbacks);
-    String answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
+    String answer = pcelp.postCallbacks("{\"FirstName\": \"Кириллица\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
     // System.out.println(answer);
-    assertTrue(answer.contains("\"data\":{\"this\":\"our test payload\"}"));
+    assertTrue(answer.contains("\"data\":{\"FirstName\":\"Кириллица\"}"));
     assertTrue(answer.contains("\"x-keycloak-token\":\"test-token-12345\""));
 
     callbacks = new ArrayList<>();

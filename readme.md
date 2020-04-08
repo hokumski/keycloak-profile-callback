@@ -21,3 +21,5 @@ If only one is needed, you can omit "1" postfix (like "callbackTo", "timeout", .
 ...
 </subsystem>
 ```
+
+Don't forget to enable listener in Realm Events -> Config
