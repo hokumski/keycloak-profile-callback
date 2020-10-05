@@ -29,6 +29,7 @@ import java.util.Map;
 
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
+import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserModel;
@@ -55,9 +56,14 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   private KeycloakSession session;
   private JsonFactory jsonFactory;
   private ArrayList<HashMap<String, Object>> callbacks;
+  private String enforcedEmailChangeAction;
 
-  ProfileCallbackEventListenerProvider(KeycloakSession session, ArrayList<HashMap<String, Object>> callbacks) {
+  ProfileCallbackEventListenerProvider(
+          KeycloakSession session,
+          ArrayList<HashMap<String, Object>> callbacks,
+          String enforcedEmailChangeAction) {
     this.callbacks = callbacks;
+    this.enforcedEmailChangeAction = enforcedEmailChangeAction;
     this.session = session;
     this.jsonFactory = new JsonFactory();
   }
@@ -75,6 +81,21 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
             // System.out.println(userData);
             postCallbacks(userData);
           } catch (IOException ignored) {}
+
+          // special case for UPDATE_EMAIL: adding necessary Required Action
+          if (event.getType() == EventType.UPDATE_EMAIL && !this.enforcedEmailChangeAction.equals("")) {
+            RealmModel realmModel = session.getContext().getRealm();
+            UserModel userModel = session.userCache().getUserById(event.getUserId(), realmModel);
+            userModel.addRequiredAction(this.enforcedEmailChangeAction);
+
+            // this is hardcode for our custom Required Action, not configurable
+            // https://github.com/hokumski/keycloak-verifyemailwithcode
+            if (this.enforcedEmailChangeAction.equals("VERIFY_EMAIL_WITH_CODE")) {
+              userModel.setEmailVerified(false);
+              session.sessions().removeUserSessions(realmModel);
+            }
+          }
+
           break;
         }
     }
@@ -93,6 +114,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
     StringWriter jsonObjectWriter = new StringWriter();
     RealmModel realmModel = session.getContext().getRealm();
     UserModel userModel = session.userCache().getUserById(userId, realmModel);
+
     Map<String, List<String>> userAttributes = userModel.getAttributes();
 
     JsonGenerator generator = this.jsonFactory.createGenerator(jsonObjectWriter);

@@ -15,6 +15,8 @@ If only one is needed, you can omit "1" postfix (like "callbackTo", "timeout", .
       <property name="timeout1" value="1000" />
       <property name="authHeaderName1" value="Authentication" />
       <property name="authHeaderValue1" value="Bearer of blabla" />
+      ...
+      <property name="enforceRequiredActionOnEmailChange" value="VERIFY_EMAIL_WITH_CODE" />
     </properties>
   </provider>
 </spi>
