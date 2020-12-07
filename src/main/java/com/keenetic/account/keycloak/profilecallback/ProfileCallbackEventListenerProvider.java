@@ -88,11 +88,12 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
             UserModel userModel = session.userCache().getUserById(event.getUserId(), realmModel);
             userModel.addRequiredAction(this.enforcedEmailChangeAction);
 
-            // this is hardcode for our custom Required Action, not configurable
+            // This is hardcode for our custom Required Action, not configurable.
+            // We need to logout all user's sessions, if VERIFY_EMAIL_WITH_CODE is added to required actions.
             // https://github.com/hokumski/keycloak-verifyemailwithcode
             if (this.enforcedEmailChangeAction.equals("VERIFY_EMAIL_WITH_CODE")) {
               userModel.setEmailVerified(false);
-              session.sessions().removeUserSessions(realmModel);
+              session.sessions().removeUserSessions(realmModel, userModel);
             }
           }
 
