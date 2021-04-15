@@ -78,7 +78,6 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           System.out.println("logged email/profile update for " + event.getUserId());
           try {
             String userData = getUserInfo(event.getUserId());
-            // System.out.println(userData);
             postCallbacks(userData);
           } catch (IOException ignored) {}
 

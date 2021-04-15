@@ -1,3 +1,10 @@
+# Keycloak-Profile-Callback
+
+This is an event listener, posting JSON with userdata after 
+*UPDATE_EMAIL* and *UPDATE_PROFILE* events to configured endpoints. 
+
+----
+
 Add to Keycloak config, to server -> profile section 
 
 You can add several callbacks, use consecutive postfixes "1", "2" up to "10" to set request parameters for each callback.
@@ -24,4 +31,6 @@ If only one is needed, you can omit "1" postfix (like "callbackTo", "timeout", .
 </subsystem>
 ```
 
-Don't forget to enable listener in Realm Events -> Config
+----
+
+**IMPORTANT**: Don't forget to enable listener in Realm Events -> Config
