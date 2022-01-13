@@ -6,7 +6,7 @@
 
     <groupId>com.keenetic.account</groupId>
     <artifactId>keycloak-profile-callback</artifactId>
-    <version>1.1</version>
+    <version>1.15</version>
 
     <properties>
         <!-- Maven -->
@@ -15,7 +15,7 @@
 
         <!-- Dependencies -->
         <jboss.logging.version>3.3.1.Final</jboss.logging.version>
-        <keycloak.version>10.0.0</keycloak.version>
+        <keycloak.version>15.1.1</keycloak.version>
     </properties>
 
     <dependencies>
@@ -70,7 +70,7 @@
     <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
-        <version>4.5.4</version>
+        <version>4.5.13</version>
     </dependency>
 
     </dependencies>
