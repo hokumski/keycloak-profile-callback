@@ -36,10 +36,18 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   public static final String ID = "profile-callback";
   static ArrayList<HashMap<String, Object>> callbacks = new ArrayList<>();
   static String enforcedEmailChangeAction = "";
+  boolean saveLastEmail = false;
+  boolean saveEmailHistory = false;
 
   @Override
   public EventListenerProvider create(KeycloakSession keycloakSession) {
-    return new ProfileCallbackEventListenerProvider(keycloakSession, callbacks, enforcedEmailChangeAction);
+    return new ProfileCallbackEventListenerProvider(
+            keycloakSession,
+            callbacks,
+            enforcedEmailChangeAction,
+            saveLastEmail,
+            saveEmailHistory
+    );
   }
 
   /**
@@ -87,6 +95,9 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
     if (!enforceRAOnEmailChange.equals("")) {
       enforcedEmailChangeAction = enforceRAOnEmailChange;
     }
+
+    saveLastEmail = scope.get("saveLastEmail", "").equalsIgnoreCase("true");
+    saveEmailHistory = scope.get("saveEmailHistory", "").equalsIgnoreCase("true");
 
     HashMap<String, Object> simpleConfig = getCallbackSettings(scope, "");
     if (simpleConfig != null) {

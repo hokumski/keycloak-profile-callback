@@ -28,7 +28,7 @@ public class ProfileCallbackEventListenerProviderTest {
     callbacks.add(setting1);
 
     ProfileCallbackEventListenerProvider pcelp;
-    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "");
+    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "", false, false);
     String answer = pcelp.postCallbacks("{\"FirstName\": \"Кириллица\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
     // System.out.println(answer);
@@ -38,7 +38,7 @@ public class ProfileCallbackEventListenerProviderTest {
     callbacks = new ArrayList<>();
     callbacks.add(setting2);
 
-    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "");
+    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "", false, false);
     answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
     assertTrue(answer.contains("connection timeout for: "));
 

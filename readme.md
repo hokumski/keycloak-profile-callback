@@ -1,7 +1,10 @@
 # Keycloak-Profile-Callback
 
-This is an event listener, posting JSON with userdata after 
-*UPDATE_EMAIL* and *UPDATE_PROFILE* events to configured endpoints. 
+This is an event listener, posting JSON with userdata after specific events to configured endpoints. 
+- UPDATE_PROFILE
+- DELETE_ACCOUNT
+- CUSTOM_REQUIRED_ACTION
+  - VERIFY_EMAIL_WITH_CODE
 
 ----
 
@@ -23,7 +26,6 @@ If only one is needed, you can omit "1" postfix (like "callbackTo", "timeout", .
       <property name="authHeaderName1" value="Authentication" />
       <property name="authHeaderValue1" value="Bearer of blabla" />
       ...
-      <property name="enforceRequiredActionOnEmailChange" value="VERIFY_EMAIL_WITH_CODE" />
     </properties>
   </provider>
 </spi>

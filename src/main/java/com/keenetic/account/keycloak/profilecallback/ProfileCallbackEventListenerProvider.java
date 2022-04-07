@@ -57,13 +57,17 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   private JsonFactory jsonFactory;
   private ArrayList<HashMap<String, Object>> callbacks;
   private String enforcedEmailChangeAction;
+  private boolean saveLastEmail;
+  private boolean saveEmailHistory;
 
   ProfileCallbackEventListenerProvider(
           KeycloakSession session,
           ArrayList<HashMap<String, Object>> callbacks,
-          String enforcedEmailChangeAction) {
+          String enforcedEmailChangeAction, boolean saveLastEmail, boolean saveEmailHistory) {
     this.callbacks = callbacks;
     this.enforcedEmailChangeAction = enforcedEmailChangeAction;
+    this.saveLastEmail = saveLastEmail;
+    this.saveEmailHistory = saveEmailHistory;
     this.session = session;
     this.jsonFactory = new JsonFactory();
   }
@@ -72,32 +76,37 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   public void onEvent(Event event) {
 
     switch (event.getType()) {
-      case UPDATE_EMAIL:
-      case UPDATE_PROFILE:
-        {
-          System.out.println("logged email/profile update for " + event.getUserId());
+      case CUSTOM_REQUIRED_ACTION: {
+        Map<String, String> eventDetails = event.getDetails();
+        String customRequiredActionName = eventDetails.get("custom_required_action");
+        // only 1 action now
+        if (customRequiredActionName.equals("VERIFY_EMAIL_WITH_CODE")) {
+          System.out.println("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
           try {
-            String userData = getUserInfo(event.getUserId());
-            postCallbacks(userData);
-          } catch (IOException ignored) {}
-
-          // special case for UPDATE_EMAIL: adding necessary Required Action
-          if (event.getType() == EventType.UPDATE_EMAIL && !this.enforcedEmailChangeAction.equals("")) {
-            RealmModel realmModel = session.getContext().getRealm();
-            UserModel userModel = session.userCache().getUserById(event.getUserId(), realmModel);
-            userModel.addRequiredAction(this.enforcedEmailChangeAction);
-
-            // This is hardcode for our custom Required Action, not configurable.
-            // We need to logout all user's sessions, if VERIFY_EMAIL_WITH_CODE is added to required actions.
-            // https://github.com/hokumski/keycloak-verifyemailwithcode
-            if (this.enforcedEmailChangeAction.equals("VERIFY_EMAIL_WITH_CODE")) {
-              userModel.setEmailVerified(false);
-              session.sessions().removeUserSessions(realmModel, userModel);
+            String userData = getUserInfo(event.getUserId(), customRequiredActionName);
+            String answer = postCallbacks(userData);
+            if (!answer.equals("")) {
+              System.out.println(answer);
             }
+          } catch (IOException ignored) {
           }
-
-          break;
         }
+        break;
+      }
+      case VERIFY_EMAIL:
+      case DELETE_ACCOUNT:
+      case UPDATE_PROFILE: {
+        System.out.println("logged " + event.getType() + " for " + event.getUserId());
+        try {
+          String userData = getUserInfo(event.getUserId(), event.getType().toString());
+          String answer = postCallbacks(userData);
+          if (!answer.equals("")) {
+            System.out.println(answer);
+          }
+        } catch (IOException ignored) {
+        }
+        break;
+      }
     }
   }
 
@@ -110,26 +119,34 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
    *    "FirstName": "First", "LastName": "Last"}
    * @throws IOException
    */
-  String getUserInfo(String userId) throws IOException {
+  String getUserInfo(String userId, String eventType) throws IOException {
     StringWriter jsonObjectWriter = new StringWriter();
     RealmModel realmModel = session.getContext().getRealm();
-    UserModel userModel = session.userCache().getUserById(userId, realmModel);
-
-    Map<String, List<String>> userAttributes = userModel.getAttributes();
+    UserModel userModel = session.users().getUserById(realmModel, userId);
 
     JsonGenerator generator = this.jsonFactory.createGenerator(jsonObjectWriter);
     generator.writeStartObject();
-    generator.writeStringField("Date",
-            java.time.ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
+
+    generator.writeStringField("Type", eventType);
     generator.writeStringField("Id", userId);
-    generator.writeStringField("Email", userModel.getEmail());
-    generator.writeStringField("FirstName", userModel.getFirstName());
-    generator.writeStringField("LastName", userModel.getLastName());
-    if (userAttributes.containsKey("locale")) {
-      generator.writeStringField("Locale", userAttributes.get("locale").get(0));
-    }
-    if (userAttributes.containsKey("phone")) {
-      generator.writeStringField("Phone", userAttributes.get("phone").get(0));
+
+    if (userModel == null) {
+      // for DELETE_ACCOUNT, user is already deleted, so everything we can return,
+      // is json with Id
+      generator.writeStringField("IsUserMissing", "true");
+    } else {
+      Map<String, List<String>> userAttributes = userModel.getAttributes();
+      generator.writeStringField("Date",
+              java.time.ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
+      generator.writeStringField("Email", userModel.getEmail());
+      generator.writeStringField("FirstName", userModel.getFirstName());
+      generator.writeStringField("LastName", userModel.getLastName());
+      if (userAttributes.containsKey("locale")) {
+        generator.writeStringField("Locale", userAttributes.get("locale").get(0));
+      }
+      if (userAttributes.containsKey("phone")) {
+        generator.writeStringField("Phone", userAttributes.get("phone").get(0));
+      }
     }
     generator.writeEndObject();
     generator.close();
