@@ -83,7 +83,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         if (customRequiredActionName.equals("VERIFY_EMAIL_WITH_CODE")) {
           System.out.println("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
           try {
-            String userData = getUserInfo(event.getUserId(), customRequiredActionName);
+            String userData = getUserInfo(event.getUserId(), customRequiredActionName, event.getDetails());
             String answer = postCallbacks(userData);
             if (!answer.equals("")) {
               System.out.println(answer);
@@ -98,7 +98,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       case UPDATE_PROFILE: {
         System.out.println("logged " + event.getType() + " for " + event.getUserId());
         try {
-          String userData = getUserInfo(event.getUserId(), event.getType().toString());
+          String userData = getUserInfo(event.getUserId(), event.getType().toString(), event.getDetails());
           String answer = postCallbacks(userData);
           if (!answer.equals("")) {
             System.out.println(answer);
@@ -119,7 +119,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
    *    "FirstName": "First", "LastName": "Last"}
    * @throws IOException
    */
-  String getUserInfo(String userId, String eventType) throws IOException {
+  String getUserInfo(String userId, String eventType, Map<String,String> details) throws IOException {
     StringWriter jsonObjectWriter = new StringWriter();
     RealmModel realmModel = session.getContext().getRealm();
     UserModel userModel = session.users().getUserById(realmModel, userId);
@@ -135,21 +135,51 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       // is json with Id
       generator.writeStringField("IsUserMissing", "true");
     } else {
+
       Map<String, List<String>> userAttributes = userModel.getAttributes();
       generator.writeStringField("Date",
               java.time.ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
       generator.writeStringField("Email", userModel.getEmail());
-      generator.writeStringField("FirstName", userModel.getFirstName());
-      generator.writeStringField("LastName", userModel.getLastName());
-      if (userAttributes.containsKey("locale")) {
-        generator.writeStringField("Locale", userAttributes.get("locale").get(0));
+
+      // Following NEW values could present in event details
+      String firstName = userModel.getFirstName();
+      if (details.containsKey("updated_first_name")) {
+        firstName = details.get("updated_first_name");
       }
+
+      String lastName = userModel.getLastName();
+      if (details.containsKey("updated_last_name")) {
+        lastName = details.get("updated_last_name");
+      }
+
+      String locale = "";
+      if (userAttributes.containsKey("locale")) {
+        locale = userAttributes.get("locale").get(0);
+      }
+      if (details.containsKey("updated_locale")) {
+        locale = details.get("updated_locale");
+      }
+
+      String phone = "";
       if (userAttributes.containsKey("phone")) {
-        generator.writeStringField("Phone", userAttributes.get("phone").get(0));
+        phone = userAttributes.get("phone").get(0);
+      }
+      if (details.containsKey("updated_phone")) {
+        phone = details.get("updated_phone");
+      }
+
+      generator.writeStringField("FirstName", firstName);
+      generator.writeStringField("LastName", lastName);
+      if (!locale.equals("")) {
+        generator.writeStringField("Locale", locale);
+      }
+      if (!phone.equals("")) {
+        generator.writeStringField("Phone", phone);
       }
     }
     generator.writeEndObject();
     generator.close();
+
     return jsonObjectWriter.toString();
   }
 
