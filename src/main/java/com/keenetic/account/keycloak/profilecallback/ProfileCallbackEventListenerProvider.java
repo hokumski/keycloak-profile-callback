@@ -22,15 +22,14 @@ import java.io.StringWriter;
 import java.net.UnknownHostException;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
+import org.keycloak.events.admin.OperationType;
+import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.RealmModel;
@@ -237,7 +236,38 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   }
 
   @Override
-  public void onEvent(AdminEvent adminEvent, boolean b) {
+  public void onEvent(AdminEvent adminEvent, boolean includeRepresentation) {
+
+    // Idea: making callbacks from Admin API looks like callbacks, generated from User Account.
+    // For now: converting DELETE of resource type USER to DELETE_ACCOUNT event
+
+    if (Objects.requireNonNull(adminEvent.getResourceType()) == ResourceType.USER) {
+      String[] resourcePathParts = adminEvent.getResourcePath().split("/");
+      if (resourcePathParts.length == 2) {
+        String userId = resourcePathParts[1];
+
+        // Checking if second part of resource path is UUID
+        try {
+          UUID u = UUID.fromString(userId);
+        } catch (IllegalArgumentException ignored) {
+          System.out.println(userId + " from resourcePath is not UUID");
+          return;
+        }
+
+        if (Objects.requireNonNull(adminEvent.getOperationType()) == OperationType.DELETE) {
+          try {
+            System.out.println("logged admin event DELETE on USER for " + userId);
+            String userData = getUserInfo(userId, "DELETE_ACCOUNT", null);
+            String answer = postCallbacks(userData);
+            if (!answer.equals("")) {
+              System.out.println(answer);
+            }
+          } catch (IOException ignored) {
+          }
+        }
+
+      }
+    }
   }
 
   @Override
