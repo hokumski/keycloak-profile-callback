@@ -1,5 +1,6 @@
 package com.keenetic.account.keycloak.profilecallback;
 
+import org.jboss.logging.Logger;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -13,6 +14,8 @@ public class ProfileCallbackEventListenerProviderTest {
 
   @Test
   public void doPost() throws URISyntaxException, IOException {
+
+    Logger logger = Logger.getLogger(ProfileCallbackEventListenerProviderFactory.class);
 
     HashMap<String, Object> setting1 = new HashMap<>();
     setting1.put("url", "https://postman-echo.com/post");
@@ -28,7 +31,7 @@ public class ProfileCallbackEventListenerProviderTest {
     callbacks.add(setting1);
 
     ProfileCallbackEventListenerProvider pcelp;
-    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "", false, false);
+    pcelp = new ProfileCallbackEventListenerProvider(null, logger, callbacks, "", false, false);
     String answer = pcelp.postCallbacks("{\"FirstName\": \"Кириллица\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
     answer = answer.replaceAll("\n", "").replaceAll("\t", "");
@@ -41,7 +44,7 @@ public class ProfileCallbackEventListenerProviderTest {
     callbacks = new ArrayList<>();
     callbacks.add(setting2);
 
-    pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "", false, false);
+    pcelp = new ProfileCallbackEventListenerProvider(null, logger, callbacks, "", false, false);
     answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
     assertTrue(answer.contains("connection timeout for: "));
 

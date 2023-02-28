@@ -24,6 +24,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+import org.jboss.logging.Logger;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventType;
@@ -58,9 +59,11 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   private String enforcedEmailChangeAction;
   private boolean saveLastEmail;
   private boolean saveEmailHistory;
+  protected Logger logger;
 
   ProfileCallbackEventListenerProvider(
           KeycloakSession session,
+          Logger logger,
           ArrayList<HashMap<String, Object>> callbacks,
           String enforcedEmailChangeAction, boolean saveLastEmail, boolean saveEmailHistory) {
     this.callbacks = callbacks;
@@ -69,6 +72,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
     this.saveEmailHistory = saveEmailHistory;
     this.session = session;
     this.jsonFactory = new JsonFactory();
+    this.logger = logger;
   }
 
   @Override
@@ -80,12 +84,12 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         String customRequiredActionName = eventDetails.get("custom_required_action");
         // only 1 action now
         if (customRequiredActionName.equals("VERIFY_EMAIL_WITH_CODE")) {
-          System.out.println("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
+          logger.debug("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
           try {
             String userData = getUserInfo(event.getUserId(), customRequiredActionName, event.getDetails());
             String answer = postCallbacks(userData);
             if (!answer.equals("")) {
-              System.out.println(answer);
+              logger.debug(answer);
             }
           } catch (IOException ignored) {
           }
@@ -95,12 +99,12 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       case VERIFY_EMAIL:
       case DELETE_ACCOUNT:
       case UPDATE_PROFILE: {
-        System.out.println("logged " + event.getType() + " for " + event.getUserId());
+        logger.debug("logged " + event.getType() + " for " + event.getUserId());
         try {
           String userData = getUserInfo(event.getUserId(), event.getType().toString(), event.getDetails());
           String answer = postCallbacks(userData);
           if (!answer.equals("")) {
-            System.out.println(answer);
+            logger.debug(answer);
           }
         } catch (IOException ignored) {
         }
@@ -250,17 +254,17 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         try {
           UUID u = UUID.fromString(userId);
         } catch (IllegalArgumentException ignored) {
-          System.out.println(userId + " from resourcePath is not UUID");
+          logger.error(userId + " from resourcePath is not UUID");
           return;
         }
 
         if (Objects.requireNonNull(adminEvent.getOperationType()) == OperationType.DELETE) {
           try {
-            System.out.println("logged admin event DELETE on USER for " + userId);
+            logger.debug("logged admin event DELETE on USER for " + userId);
             String userData = getUserInfo(userId, "DELETE_ACCOUNT", null);
             String answer = postCallbacks(userData);
             if (!answer.equals("")) {
-              System.out.println(answer);
+              logger.debug(answer);
             }
           } catch (IOException ignored) {
           }

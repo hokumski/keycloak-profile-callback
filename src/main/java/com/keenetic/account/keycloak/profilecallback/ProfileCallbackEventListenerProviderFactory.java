@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.EventListenerProviderFactory;
@@ -38,11 +39,13 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   static String enforcedEmailChangeAction = "";
   boolean saveLastEmail = false;
   boolean saveEmailHistory = false;
+  protected static final Logger logger = Logger.getLogger("profile-callback");
 
   @Override
   public EventListenerProvider create(KeycloakSession keycloakSession) {
     return new ProfileCallbackEventListenerProvider(
             keycloakSession,
+            logger,
             callbacks,
             enforcedEmailChangeAction,
             saveLastEmail,
@@ -109,7 +112,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
         String callbackTo = new URI(callbackToURL).toString();
         result.put("url", callbackTo);
       } catch (URISyntaxException ignored) {
-        System.out.println("Error: malformed URL for profile-callback");
+        logger.error("Error: malformed URL for profile-callback");
         return null;
       }
       int timeout = getIntFromScope(scope,"timeout" + postfix, -1);
@@ -133,7 +136,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    */
   @Override
   public void init(Config.Scope scope) {
-    System.out.println("Initializing profile-callback");
+    logger.info("Initializing profile-callback");
 
     String enforceRAOnEmailChange = scope.get("enforceRequiredActionOnEmailChange", "");
     if (!enforceRAOnEmailChange.equals("")) {
@@ -146,16 +149,16 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
     HashMap<String, Object> simpleConfig = getCallbackSettings(scope, "");
     if (simpleConfig != null) {
       callbacks.add(simpleConfig);
-      System.out.println("Found simple configuration with 1 callback");
-      System.out.println(simpleConfig);
+      logger.info("Found simple configuration with 1 callback");
+      logger.info(simpleConfig);
     } else {
       // iterating until have some
       for (int i = 1; i<=10; i++) {
         HashMap<String, Object> positionalConfig = getCallbackSettings(scope, Integer.toString(i));
         if (positionalConfig != null) {
           callbacks.add(positionalConfig);
-          System.out.println("Found callback configuration #" + i);
-          System.out.println(positionalConfig);
+          logger.info("Found callback configuration #" + i);
+          logger.info(positionalConfig);
         } else {
           break;
         }
