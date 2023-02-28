@@ -31,9 +31,12 @@ public class ProfileCallbackEventListenerProviderTest {
     pcelp = new ProfileCallbackEventListenerProvider(null, callbacks, "", false, false);
     String answer = pcelp.postCallbacks("{\"FirstName\": \"Кириллица\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
-    // System.out.println(answer);
-    assertTrue(answer.contains("\"data\":{\"FirstName\":\"Кириллица\"}"));
-    assertTrue(answer.contains("\"x-keycloak-token\":\"test-token-12345\""));
+    answer = answer.replaceAll("\n", "").replaceAll("\t", "");
+    answer = answer.replace("{    ", "{").replace("  }", "}");
+    //System.out.println(answer);
+
+    assertTrue(answer.contains("\"data\": {\"FirstName\": \"Кириллица\"}"));
+    assertTrue(answer.contains("\"x-keycloak-token\": \"test-token-12345\""));
 
     callbacks = new ArrayList<>();
     callbacks.add(setting2);
@@ -43,5 +46,4 @@ public class ProfileCallbackEventListenerProviderTest {
     assertTrue(answer.contains("connection timeout for: "));
 
   }
-
 }

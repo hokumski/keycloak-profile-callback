@@ -51,6 +51,50 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   }
 
   /**
+   * Gets string param from scope
+   * KK18 loads config of eventsListener in a wrong manner, so we have only option to store values in key
+   * spi-eventsListener-providerId-param=value <- KK fails to read this, but returns
+   * "kc.spi-eventsListener-providerId-param" in getPropertyNames()
+   */
+  String getStringFromScope(Config.Scope scope, String name) {
+    String direct = scope.get(name, "");
+    if (!direct.equals("")) {
+      return direct;
+    }
+    for (String s : scope.getPropertyNames()) {
+      // kc.spi-eventsListener-providerId-param-value
+      // value can also contain dashes!
+      String propertyName = s
+              .replace("kc.spi-eventsListener-", "")
+              .replace(this.getId() + "-", "");
+
+      int firstDash = propertyName.indexOf("-");
+      if (firstDash != -1) {
+        String propertyKey = propertyName.substring(0, firstDash);
+        if (propertyKey.equals(name)) {
+          String value = propertyName.substring(firstDash+1);
+          value = value.replace("(semicolon)", ":");
+          return value;
+        }
+      }
+    }
+    return "";
+  }
+
+  int getIntFromScope(Config.Scope scope, String name, int defValue) {
+    String val = getStringFromScope(scope, name);
+    if (!val.equals("")) {
+      try {
+        return Integer.parseInt(val);
+      }
+      catch (NumberFormatException ignored) {
+        return defValue;
+      }
+    }
+    return defValue;
+  }
+
+  /**
    * Loads callback settings from keycloak config
    *
    * @param scope part of keycloak config with listener settings
@@ -58,7 +102,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    * @return HashMap with callback settings
    */
   private HashMap<String, Object> getCallbackSettings(Config.Scope scope, String postfix) {
-    String callbackToURL = scope.get("callbackTo" + postfix, "");
+    String callbackToURL = getStringFromScope(scope,"callbackTo" + postfix);
     if (!callbackToURL.equals("")) {
       HashMap<String, Object> result = new HashMap<>();
       try {
@@ -68,12 +112,12 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
         System.out.println("Error: malformed URL for profile-callback");
         return null;
       }
-      int timeout = scope.getInt("timeout" + postfix, -1);
+      int timeout = getIntFromScope(scope,"timeout" + postfix, -1);
       if (timeout > 0) {
         result.put("timeout", timeout);
       }
-      String authHeaderName = scope.get("authHeaderName" + postfix, "");
-      String authHeaderValue = scope.get("authHeaderValue" + postfix, "");
+      String authHeaderName = getStringFromScope(scope,"authHeaderName" + postfix);
+      String authHeaderValue = getStringFromScope(scope,"authHeaderValue" + postfix);
       if (!authHeaderName.equals("")) { // no need to check value, as empty string could be legal value
         result.put("authHeaderName", authHeaderName);
         result.put("authHeaderValue", authHeaderValue);
@@ -103,6 +147,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
     if (simpleConfig != null) {
       callbacks.add(simpleConfig);
       System.out.println("Found simple configuration with 1 callback");
+      System.out.println(simpleConfig);
     } else {
       // iterating until have some
       for (int i = 1; i<=10; i++) {
@@ -110,6 +155,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
         if (positionalConfig != null) {
           callbacks.add(positionalConfig);
           System.out.println("Found callback configuration #" + i);
+          System.out.println(positionalConfig);
         } else {
           break;
         }

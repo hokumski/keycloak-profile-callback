@@ -33,6 +33,20 @@ If only one is needed, you can omit "1" postfix (like "callbackTo", "timeout", .
 </subsystem>
 ```
 
+There is an issue with KK18: it is not possible to get values from scope config of eventsListener 
+(but it's OK for other types of SPI!). However, it is possible to iterate keys with scope.getPropertyNames().
+
+To make it be configurable somehow, we've added another method of writing values. 
+
+in keycloak.conf.
+```yaml
+spi-eventsListener-profile-callback-callbackTo1=https://blabla.com/post
+spi-eventsListener-profile-callback-timeout1=1000
+
+# compatible-mode
+spi-eventsListener-profile-callback-callbackTo1-https(semicolon)//blabla.com/post
+spi-eventsListener-profile-callback-timeout1-1000
+```
 ----
 
 **IMPORTANT**: Don't forget to enable listener in Realm Events -> Config
