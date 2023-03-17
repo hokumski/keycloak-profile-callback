@@ -37,20 +37,11 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   public static final String ID = "profile-callback";
   static ArrayList<HashMap<String, Object>> callbacks = new ArrayList<>();
   static String enforcedEmailChangeAction = "";
-  boolean saveLastEmail = false;
-  boolean saveEmailHistory = false;
   protected static final Logger logger = Logger.getLogger("profile-callback");
 
   @Override
   public EventListenerProvider create(KeycloakSession keycloakSession) {
-    return new ProfileCallbackEventListenerProvider(
-            keycloakSession,
-            logger,
-            callbacks,
-            enforcedEmailChangeAction,
-            saveLastEmail,
-            saveEmailHistory
-    );
+    return new ProfileCallbackEventListenerProvider(keycloakSession, logger, callbacks);
   }
 
   /**
@@ -138,13 +129,11 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
   public void init(Config.Scope scope) {
     logger.info("Initializing profile-callback");
 
-    String enforceRAOnEmailChange = scope.get("enforceRequiredActionOnEmailChange", "");
+    //String enforceRAOnEmailChange = scope.get("enforceRequiredActionOnEmailChange", "");
+    String enforceRAOnEmailChange = getStringFromScope(scope, "enforceRequiredActionOnEmailChange");
     if (!enforceRAOnEmailChange.equals("")) {
       enforcedEmailChangeAction = enforceRAOnEmailChange;
     }
-
-    saveLastEmail = scope.get("saveLastEmail", "").equalsIgnoreCase("true");
-    saveEmailHistory = scope.get("saveEmailHistory", "").equalsIgnoreCase("true");
 
     HashMap<String, Object> simpleConfig = getCallbackSettings(scope, "");
     if (simpleConfig != null) {
@@ -163,6 +152,9 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
           break;
         }
       }
+    }
+    if (callbacks.size() == 0) {
+      logger.info("Callbacks configurations not found");
     }
   }
 

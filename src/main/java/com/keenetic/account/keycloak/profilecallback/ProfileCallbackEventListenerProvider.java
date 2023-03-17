@@ -56,20 +56,13 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   private KeycloakSession session;
   private JsonFactory jsonFactory;
   private ArrayList<HashMap<String, Object>> callbacks;
-  private String enforcedEmailChangeAction;
-  private boolean saveLastEmail;
-  private boolean saveEmailHistory;
   protected Logger logger;
 
   ProfileCallbackEventListenerProvider(
           KeycloakSession session,
           Logger logger,
-          ArrayList<HashMap<String, Object>> callbacks,
-          String enforcedEmailChangeAction, boolean saveLastEmail, boolean saveEmailHistory) {
+          ArrayList<HashMap<String, Object>> callbacks) {
     this.callbacks = callbacks;
-    this.enforcedEmailChangeAction = enforcedEmailChangeAction;
-    this.saveLastEmail = saveLastEmail;
-    this.saveEmailHistory = saveEmailHistory;
     this.session = session;
     this.jsonFactory = new JsonFactory();
     this.logger = logger;
@@ -91,7 +84,9 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
             if (!answer.equals("")) {
               logger.debug(answer);
             }
-          } catch (IOException ignored) {
+          } catch (IOException e) {
+            logger.error("failed to callback for " + event.getType());
+            logger.error(e);
           }
         }
         break;
@@ -106,7 +101,9 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           if (!answer.equals("")) {
             logger.debug(answer);
           }
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+          logger.error("failed to callback for " + event.getType());
+          logger.error(e);
         }
         break;
       }
@@ -197,6 +194,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
     StringBuilder sb = new StringBuilder();
     for (HashMap<String, Object> callback : this.callbacks) {
       String url = (String) callback.get("url");
+      logger.debug("callback to " + url);
       try {
         HttpPost post = new HttpPost(url);
 
@@ -226,14 +224,17 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         sb.append("unknown host: ");
         sb.append(url);
         sb.append("\n");
+        logger.error("callback to " + url + " failed: UnknownHostException");
       } catch (ConnectTimeoutException ignored) {
         sb.append("connection timeout for: ");
         sb.append(url);
         sb.append("\n");
+        logger.error("callback to " + url + " failed: ConnectTimeoutException");
       } catch (Exception ignored) {
         sb.append("unknown error for: ");
         sb.append(url);
         sb.append("\n");
+        logger.error("callback to " + url + " failed: Exception");
       }
     }
     return sb.toString();
