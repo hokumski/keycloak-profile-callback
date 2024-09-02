@@ -5,6 +5,7 @@ This is an event listener, posting JSON with userdata after specific events to c
 - DELETE_ACCOUNT
 - CUSTOM_REQUIRED_ACTION
   - VERIFY_EMAIL_WITH_CODE
+- REVOKE_GRANT
 
 ----
 

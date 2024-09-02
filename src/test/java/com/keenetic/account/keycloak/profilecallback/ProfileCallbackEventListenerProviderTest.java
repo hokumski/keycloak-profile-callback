@@ -1,13 +1,20 @@
 package com.keenetic.account.keycloak.profilecallback;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import org.jboss.logging.Logger;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ProfileCallbackEventListenerProviderTest {
@@ -48,5 +55,30 @@ public class ProfileCallbackEventListenerProviderTest {
     answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
     assertTrue(answer.contains("connection timeout for: "));
 
+  }
+
+  @Test
+  public void convertToCamelCase(){
+
+      assertEquals("RevokeGrant", ProfileCallbackEventListenerProvider.toCamelCase("revoke_grant"));
+      assertEquals("RevokeGrant012", ProfileCallbackEventListenerProvider.toCamelCase("revoke GrAnt 0 1 2"));
+  }
+
+  @Test
+  public void convertToSnakeCase(){
+
+    assertEquals("revoke_grant", ProfileCallbackEventListenerProvider.toSnakeCase("RevokeGrant"));
+    assertEquals("revoke_grant", ProfileCallbackEventListenerProvider.toSnakeCase("revoke_grant"));
+
+  }
+
+  @Test
+  public void convertJson() throws IOException {
+
+    Map<String, String> m = new HashMap<>();
+    m.put("revoked_client", "keenetic.cloud");
+    m.put("another_value", "0");
+
+    assertEquals("{\"revoked_client\":\"keenetic.cloud\",\"another_value\":\"0\"}", ProfileCallbackEventListenerProvider.toJsonString(m));
   }
 }

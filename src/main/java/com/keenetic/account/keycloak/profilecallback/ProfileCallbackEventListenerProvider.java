@@ -27,7 +27,6 @@ import java.util.*;
 import org.jboss.logging.Logger;
 import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
-import org.keycloak.events.EventType;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
@@ -88,6 +87,21 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
             logger.error("failed to callback for " + event.getType());
             logger.error(e);
           }
+        }
+        break;
+      }
+      case REVOKE_GRANT: {
+        // type=REVOKE_GRANT, realmId=users, clientId=account, userId=4a0cb36f-0385-4a70-8f3a-d7433ec8b10e, ipAddress=127.0.0.1, revoked_client=tempoff
+        logger.debug("logged " + event.getType() + " for " + event.getUserId());
+        try {
+          String eventData = getInfo(event.getUserId(), event.getType().toString(), event.getDetails());
+          String answer = postCallbacks(eventData);
+          if (!answer.equals("")) {
+            logger.debug(answer);
+          }
+        } catch (IOException e) {
+          logger.error("failed to callback for " + event.getType());
+          logger.error(e);
         }
         break;
       }
@@ -177,6 +191,37 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         generator.writeStringField("Phone", phone);
       }
     }
+    generator.writeEndObject();
+    generator.close();
+
+    return jsonObjectWriter.toString();
+  }
+
+  /**
+   * Return JSON with data
+   *
+   * @param userId keycloak user id
+   * @return json as string,
+   *    like {"Id": "...",
+   *          "Type": "revoke_grant",
+   *          "Date": "...",
+   *          "Details": {"RevokedClient": "keenetic.cloud"}}
+   * @throws IOException
+   */
+  String getInfo(String userId, String eventType, Map<String,String> details) throws IOException {
+    StringWriter jsonObjectWriter = new StringWriter();
+
+    JsonGenerator generator = this.jsonFactory.createGenerator(jsonObjectWriter);
+    generator.writeStartObject();
+
+    generator.writeStringField("Type", eventType);
+    generator.writeStringField("Id", userId);
+    generator.writeStringField("Date",
+            java.time.ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm:ss")));
+
+    generator.writeFieldName("Details");
+    generator.writeRaw(":"+ProfileCallbackEventListenerProvider.toJsonString(details));
+
     generator.writeEndObject();
     generator.close();
 
@@ -279,4 +324,60 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
   public void close() {
 
   }
+
+  public static String toCamelCase(String s) {
+    StringBuilder b  = new StringBuilder();
+    boolean capitalizeNext = true; // capitalize the first letter
+    for (int i =0 ; i < s.length(); i++) {
+      String c = s.substring(i, i+1);
+      if (capitalizeNext) {
+        b.append(c.toUpperCase());
+        capitalizeNext = false;
+        continue;
+      }
+      if (c.equals("_") || c.equals(" ")) {
+        capitalizeNext = true;
+        continue;
+      }
+      b.append(c.toLowerCase());
+    }
+    return b.toString();
+  }
+
+  public static String toSnakeCase(String s) {
+    StringBuilder b  = new StringBuilder();
+    boolean lastUnderscore = false;
+    for (int i =0 ; i < s.length(); i++) {
+      String c = s.substring(i, i+1);
+      if (c.equals(" ") && !lastUnderscore) {
+        b.append("_");
+        lastUnderscore = true;
+        continue;
+      }
+      if (c.equals(c.toUpperCase()) && i != 0 && !lastUnderscore) {
+        b.append("_");
+      }
+      b.append(c.toLowerCase());
+      lastUnderscore = c.equals("_");
+    }
+    return b.toString().replace("__", "_");
+  }
+
+  public static String toJsonString(Map<String, String> m) throws IOException {
+    JsonFactory jsonFactory = new JsonFactory();
+    StringWriter jsonObjectWriter = new StringWriter();
+    JsonGenerator generator = jsonFactory.createGenerator(jsonObjectWriter);
+    generator.writeStartObject();
+
+    for (String k : m.keySet()) {
+      generator.writeStringField(toSnakeCase(k), m.get(k));
+      //generator.writeStringField(toCamelCase(k), m.get(k));
+    }
+
+    generator.writeEndObject();
+    generator.close();
+
+    return jsonObjectWriter.toString();
+  }
+
 }
