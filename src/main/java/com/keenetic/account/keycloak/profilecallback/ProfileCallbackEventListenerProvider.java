@@ -79,7 +79,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           logger.debug("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
           try {
             String userData = getUserInfo(event.getUserId(), customRequiredActionName, event.getDetails());
-            String answer = postCallbacks(userData);
+            String answer = postCallbacks(event.getRealmId(), userData);
             if (!answer.equals("")) {
               logger.debug(answer);
             }
@@ -95,7 +95,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         logger.debug("logged " + event.getType() + " for " + event.getUserId());
         try {
           String eventData = getInfo(event.getUserId(), event.getType().toString(), event.getDetails());
-          String answer = postCallbacks(eventData);
+          String answer = postCallbacks(event.getRealmId(), eventData);
           if (!answer.equals("")) {
             logger.debug(answer);
           }
@@ -111,7 +111,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         logger.debug("logged " + event.getType() + " for " + event.getUserId());
         try {
           String userData = getUserInfo(event.getUserId(), event.getType().toString(), event.getDetails());
-          String answer = postCallbacks(userData);
+          String answer = postCallbacks(event.getRealmId(), userData);
           if (!answer.equals("")) {
             logger.debug(answer);
           }
@@ -128,6 +128,8 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
    * Return JSON with user data
    *
    * @param userId keycloak user id
+   * @param eventType keycloak event type
+   * @param details keycloak event details
    * @return json as string,
    *    like {"Id": "b14bd453-2708-4713-82b7-5b2a317264f7", "Email": "user@server.com",
    *    "FirstName": "First", "LastName": "Last"}
@@ -235,9 +237,16 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
    * @return - answer from server
    * @throws IOException
    */
-  String postCallbacks(String payload) throws IOException {
+  String postCallbacks(String realmId, String payload) throws IOException {
+
     StringBuilder sb = new StringBuilder();
     for (HashMap<String, Object> callback : this.callbacks) {
+      String callbackRealm = (String) callback.get("realm");
+
+      if (!callbackRealm.equals("*") && !callbackRealm.equals(realmId)) {
+        continue;
+      }
+
       String url = (String) callback.get("url");
       logger.debug("callback to " + url);
       try {
@@ -246,18 +255,18 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         if (callback.containsKey("timeout")) {
           int timeout = (int) callback.get("timeout");
           final RequestConfig params =
-              RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
+                  RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
           post.setConfig(params);
         }
         if (callback.containsKey("authHeaderName") && callback.containsKey("authHeaderValue")) {
-          post.addHeader((String)callback.get("authHeaderName"), (String)callback.get("authHeaderValue"));
+          post.addHeader((String) callback.get("authHeaderName"), (String) callback.get("authHeaderValue"));
         }
         post.addHeader("content-type", "application/json; charset=utf-8");
 
         // send a JSON data
         post.setEntity(new StringEntity(payload, "UTF-8"));
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
-            CloseableHttpResponse response = httpClient.execute(post)) {
+             CloseableHttpResponse response = httpClient.execute(post)) {
           String responseEntity = EntityUtils.toString(response.getEntity());
           if (responseEntity.equals("")) {
             responseEntity = "[empty response]";
@@ -308,7 +317,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           try {
             logger.debug("logged admin event DELETE on USER for " + userId);
             String userData = getUserInfo(userId, "DELETE_ACCOUNT", null);
-            String answer = postCallbacks(userData);
+            String answer = postCallbacks(adminEvent.getRealmId(), userData);
             if (!answer.equals("")) {
               logger.debug(answer);
             }

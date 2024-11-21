@@ -106,15 +106,21 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
         logger.error("Error: malformed URL for profile-callback");
         return null;
       }
-      int timeout = getIntFromScope(scope,"timeout" + postfix, -1);
+      int timeout = getIntFromScope(scope, "timeout" + postfix, -1);
       if (timeout > 0) {
         result.put("timeout", timeout);
       }
-      String authHeaderName = getStringFromScope(scope,"authHeaderName" + postfix);
-      String authHeaderValue = getStringFromScope(scope,"authHeaderValue" + postfix);
+      String authHeaderName = getStringFromScope(scope, "authHeaderName" + postfix);
+      String authHeaderValue = getStringFromScope(scope, "authHeaderValue" + postfix);
       if (!authHeaderName.equals("")) { // no need to check value, as empty string could be legal value
         result.put("authHeaderName", authHeaderName);
         result.put("authHeaderValue", authHeaderValue);
+      }
+      String realmId = getStringFromScope(scope, "realm" + postfix);
+      if (realmId.isEmpty()) {
+        result.put("realm", "*");
+      } else {
+        result.put("realm", realmId);
       }
       return result;
     }

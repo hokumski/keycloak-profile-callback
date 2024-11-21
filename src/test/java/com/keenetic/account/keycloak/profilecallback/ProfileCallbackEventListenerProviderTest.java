@@ -26,12 +26,14 @@ public class ProfileCallbackEventListenerProviderTest {
 
     HashMap<String, Object> setting1 = new HashMap<>();
     setting1.put("url", "https://postman-echo.com/post");
+    setting1.put("realm", "*");
     setting1.put("authHeaderName", "X-KEYCLOAK-TOKEN");
     setting1.put("authHeaderValue", "test-token-12345");
     setting1.put("timeout", 10000); // good
 
     HashMap<String, Object> setting2 = new HashMap<>();
     setting2.put("url", "https://postman-echo.com/post");
+    setting2.put("realm", "*");
     setting2.put("timeout", 1); // impossible to reach this timeout
 
     ArrayList<HashMap<String, Object>> callbacks = new ArrayList<>();
@@ -39,7 +41,7 @@ public class ProfileCallbackEventListenerProviderTest {
 
     ProfileCallbackEventListenerProvider pcelp;
     pcelp = new ProfileCallbackEventListenerProvider(null, logger, callbacks);
-    String answer = pcelp.postCallbacks("{\"FirstName\": \"Кириллица\"}");
+    String answer = pcelp.postCallbacks("users", "{\"FirstName\": \"Кириллица\"}");
     // We don't analyze position, don't load json to object. string.contains is enough
     answer = answer.replaceAll("\n", "").replaceAll("\t", "");
     answer = answer.replace("{    ", "{").replace("  }", "}");
@@ -52,7 +54,7 @@ public class ProfileCallbackEventListenerProviderTest {
     callbacks.add(setting2);
 
     pcelp = new ProfileCallbackEventListenerProvider(null, logger, callbacks);
-    answer = pcelp.postCallbacks("{\"this\": \"our test payload\"}");
+    answer = pcelp.postCallbacks("users", "{\"this\": \"our test payload\"}");
     assertTrue(answer.contains("connection timeout for: "));
 
   }

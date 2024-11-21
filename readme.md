@@ -25,12 +25,14 @@ To make it be configurable somehow, we've added another method of writing values
 in keycloak.conf.
 ```yaml
 spi-eventsListener-profile-callback-callbackTo1=https://blabla.com/post
+spi-eventsListener-profile-callback-realm1=users
 spi-eventsListener-profile-callback-timeout1=1000
 spi-eventsListener-profile-callback-authHeaderName1=Authentication
 spi-eventsListener-profile-callback-authHeaderValue1=Bearer of blabla
 
 # compatible-mode
 spi-eventsListener-profile-callback-callbackTo1-https(semicolon)//blabla.com/post
+spi-eventsListener-profile-callback-realm1=users
 spi-eventsListener-profile-callback-timeout1-1000
 spi-eventsListener-profile-callback-authHeaderName1-Authentication
 spi-eventsListener-profile-callback-authHeaderValue1-Bearer of blabla
@@ -38,3 +40,9 @@ spi-eventsListener-profile-callback-authHeaderValue1-Bearer of blabla
 ----
 
 **IMPORTANT**: Don't forget to enable listener in Realm Events -> Config
+
+
+## Release notes
+
+- 1.22.2
+  - callbacks could be separated by realms, if "-realmX=name" is configured
