@@ -80,7 +80,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
           try {
             String userData = getUserInfo(event.getUserId(), customRequiredActionName, event.getDetails());
             String answer = postCallbacks(event.getRealmId(), userData);
-            if (!answer.equals("")) {
+            if (!answer.isEmpty()) {
               logger.debug(answer);
             }
           } catch (IOException e) {
@@ -96,7 +96,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         try {
           String eventData = getInfo(event.getUserId(), event.getType().toString(), event.getDetails());
           String answer = postCallbacks(event.getRealmId(), eventData);
-          if (!answer.equals("")) {
+          if (!answer.isEmpty()) {
             logger.debug(answer);
           }
         } catch (IOException e) {
@@ -112,7 +112,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         try {
           String userData = getUserInfo(event.getUserId(), event.getType().toString(), event.getDetails());
           String answer = postCallbacks(event.getRealmId(), userData);
-          if (!answer.equals("")) {
+          if (!answer.isEmpty()) {
             logger.debug(answer);
           }
         } catch (IOException e) {
@@ -186,10 +186,10 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
 
       generator.writeStringField("FirstName", firstName);
       generator.writeStringField("LastName", lastName);
-      if (!locale.equals("")) {
+      if (!locale.isEmpty()) {
         generator.writeStringField("Locale", locale);
       }
-      if (!phone.equals("")) {
+      if (!phone.isEmpty()) {
         generator.writeStringField("Phone", phone);
       }
     }
@@ -268,7 +268,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         try (CloseableHttpClient httpClient = HttpClients.createDefault();
              CloseableHttpResponse response = httpClient.execute(post)) {
           String responseEntity = EntityUtils.toString(response.getEntity());
-          if (responseEntity.equals("")) {
+          if (responseEntity.isEmpty()) {
             responseEntity = "[empty response]";
           }
           sb.append(responseEntity);
@@ -318,7 +318,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
             logger.debug("logged admin event DELETE on USER for " + userId);
             String userData = getUserInfo(userId, "DELETE_ACCOUNT", null);
             String answer = postCallbacks(adminEvent.getRealmId(), userData);
-            if (!answer.equals("")) {
+            if (!answer.isEmpty()) {
               logger.debug(answer);
             }
           } catch (IOException ignored) {
