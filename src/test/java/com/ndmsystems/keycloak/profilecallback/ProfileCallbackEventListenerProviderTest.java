@@ -1,15 +1,10 @@
-package com.keenetic.account.keycloak.profilecallback;
+package com.ndmsystems.keycloak.profilecallback;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
 import org.jboss.logging.Logger;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URISyntaxException;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,8 +42,8 @@ public class ProfileCallbackEventListenerProviderTest {
     answer = answer.replace("{    ", "{").replace("  }", "}");
     //System.out.println(answer);
 
-    assertTrue(answer.contains("\"data\": {\"FirstName\": \"Кириллица\"}"));
-    assertTrue(answer.contains("\"x-keycloak-token\": \"test-token-12345\""));
+    assertTrue(answer.contains("\"data\":{\"FirstName\":\"Кириллица\"}"));
+    assertTrue(answer.contains("\"x-keycloak-token\":\"test-token-12345\""));
 
     callbacks = new ArrayList<>();
     callbacks.add(setting2);
@@ -78,9 +73,9 @@ public class ProfileCallbackEventListenerProviderTest {
   public void convertJson() throws IOException {
 
     Map<String, String> m = new HashMap<>();
-    m.put("revoked_client", "keenetic.cloud");
+    m.put("revoked_client", "k.cloud");
     m.put("another_value", "0");
 
-    assertEquals("{\"revoked_client\":\"keenetic.cloud\",\"another_value\":\"0\"}", ProfileCallbackEventListenerProvider.toJsonString(m));
+    assertEquals("{\"revoked_client\":\"k.cloud\",\"another_value\":\"0\"}", ProfileCallbackEventListenerProvider.toJsonString(m));
   }
 }

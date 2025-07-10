@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.keenetic.account.keycloak.profilecallback;
+package com.ndmsystems.keycloak.profilecallback;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -52,7 +52,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    */
   String getStringFromScope(Config.Scope scope, String name) {
     String direct = scope.get(name, "");
-    if (!direct.equals("")) {
+    if (!direct.isEmpty()) {
       return direct;
     }
     for (String s : scope.getPropertyNames()) {
@@ -77,7 +77,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
 
   int getIntFromScope(Config.Scope scope, String name, int defValue) {
     String val = getStringFromScope(scope, name);
-    if (!val.equals("")) {
+    if (!val.isEmpty()) {
       try {
         return Integer.parseInt(val);
       }
@@ -97,7 +97,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
    */
   private HashMap<String, Object> getCallbackSettings(Config.Scope scope, String postfix) {
     String callbackToURL = getStringFromScope(scope,"callbackTo" + postfix);
-    if (!callbackToURL.equals("")) {
+    if (!callbackToURL.isEmpty()) {
       HashMap<String, Object> result = new HashMap<>();
       try {
         String callbackTo = new URI(callbackToURL).toString();
@@ -112,7 +112,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
       }
       String authHeaderName = getStringFromScope(scope, "authHeaderName" + postfix);
       String authHeaderValue = getStringFromScope(scope, "authHeaderValue" + postfix);
-      if (!authHeaderName.equals("")) { // no need to check value, as empty string could be legal value
+      if (!authHeaderName.isEmpty()) { // no need to check value, as empty string could be legal value
         result.put("authHeaderName", authHeaderName);
         result.put("authHeaderValue", authHeaderValue);
       }
@@ -137,7 +137,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
 
     //String enforceRAOnEmailChange = scope.get("enforceRequiredActionOnEmailChange", "");
     String enforceRAOnEmailChange = getStringFromScope(scope, "enforceRequiredActionOnEmailChange");
-    if (!enforceRAOnEmailChange.equals("")) {
+    if (!enforceRAOnEmailChange.isEmpty()) {
       enforcedEmailChangeAction = enforceRAOnEmailChange;
     }
 
@@ -159,7 +159,7 @@ public class ProfileCallbackEventListenerProviderFactory  implements EventListen
         }
       }
     }
-    if (callbacks.size() == 0) {
+    if (callbacks.isEmpty()) {
       logger.info("Callbacks configurations not found");
     }
   }

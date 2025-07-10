@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.keenetic.account</groupId>
+    <groupId>com.ndmsystems</groupId>
     <artifactId>keycloak-profile-callback</artifactId>
-    <version>1.22.2</version>
+    <version>1.22.4</version>
 
     <properties>
         <!-- Maven -->

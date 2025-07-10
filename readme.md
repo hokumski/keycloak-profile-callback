@@ -5,6 +5,8 @@ This is an event listener, posting JSON with userdata after specific events to c
 - DELETE_ACCOUNT
 - CUSTOM_REQUIRED_ACTION
   - VERIFY_EMAIL_WITH_CODE
+  - tac3
+  - tac3m
 - REVOKE_GRANT
 
 ----
@@ -44,5 +46,9 @@ spi-eventsListener-profile-callback-authHeaderValue1-Bearer of blabla
 
 ## Release notes
 
+- 1.22.4
+  - "phone" attribute is excluded, "country" is added
+- 1.22.3
+  - namespace changed to com.ndmsystems.keycloak
 - 1.22.2
   - callbacks could be separated by realms, if "-realmX=name" is configured

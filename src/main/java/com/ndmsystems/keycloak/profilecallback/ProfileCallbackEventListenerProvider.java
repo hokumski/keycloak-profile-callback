@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.keenetic.account.keycloak.profilecallback;
+package com.ndmsystems.keycloak.profilecallback;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -74,8 +74,11 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       case CUSTOM_REQUIRED_ACTION: {
         Map<String, String> eventDetails = event.getDetails();
         String customRequiredActionName = eventDetails.get("custom_required_action");
-        // only 1 action now
-        if (customRequiredActionName.equals("VERIFY_EMAIL_WITH_CODE")) {
+
+        if (customRequiredActionName.equals("VERIFY_EMAIL_WITH_CODE")
+                || customRequiredActionName.equals("tac3")
+                || customRequiredActionName.equals("tac3m")) {
+
           logger.debug("logged custom required action " + customRequiredActionName + " for " + event.getUserId());
           try {
             String userData = getUserInfo(event.getUserId(), customRequiredActionName, event.getDetails());
@@ -143,6 +146,10 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
     JsonGenerator generator = this.jsonFactory.createGenerator(jsonObjectWriter);
     generator.writeStartObject();
 
+    if (eventType.equals("tac3") || eventType.equals("tac3m")) {
+      eventType = "UPDATE_PROFILE";
+    }
+
     generator.writeStringField("Type", eventType);
     generator.writeStringField("Id", userId);
 
@@ -176,12 +183,12 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
         locale = details.get("updated_locale");
       }
 
-      String phone = "";
-      if (userAttributes.containsKey("phone")) {
-        phone = userAttributes.get("phone").get(0);
+      String country = "";
+      if (userAttributes.containsKey("country")) {
+        country = userAttributes.get("country").get(0);
       }
-      if (details.containsKey("updated_phone")) {
-        phone = details.get("updated_phone");
+      if (details.containsKey("updated_country")) {
+        country = details.get("updated_country");
       }
 
       generator.writeStringField("FirstName", firstName);
@@ -189,8 +196,8 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       if (!locale.isEmpty()) {
         generator.writeStringField("Locale", locale);
       }
-      if (!phone.isEmpty()) {
-        generator.writeStringField("Phone", phone);
+      if (!country.isEmpty()) {
+        generator.writeStringField("Country", country);
       }
     }
     generator.writeEndObject();
@@ -207,7 +214,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
    *    like {"Id": "...",
    *          "Type": "revoke_grant",
    *          "Date": "...",
-   *          "Details": {"RevokedClient": "keenetic.cloud"}}
+   *          "Details": {"RevokedClient": "cloud"}}
    * @throws IOException
    */
   String getInfo(String userId, String eventType, Map<String,String> details) throws IOException {
