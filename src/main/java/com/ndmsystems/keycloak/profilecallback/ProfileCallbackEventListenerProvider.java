@@ -166,12 +166,12 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
 
       // Following NEW values could present in event details
       String firstName = userModel.getFirstName();
-      if (details.containsKey("updated_first_name")) {
+      if (details != null && details.containsKey("updated_first_name")) {
         firstName = details.get("updated_first_name");
       }
 
       String lastName = userModel.getLastName();
-      if (details.containsKey("updated_last_name")) {
+      if (details != null && details.containsKey("updated_last_name")) {
         lastName = details.get("updated_last_name");
       }
 
@@ -179,7 +179,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       if (userAttributes.containsKey("locale")) {
         locale = userAttributes.get("locale").get(0);
       }
-      if (details.containsKey("updated_locale")) {
+      if (details != null && details.containsKey("updated_locale")) {
         locale = details.get("updated_locale");
       }
 
@@ -187,7 +187,7 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
       if (userAttributes.containsKey("country")) {
         country = userAttributes.get("country").get(0);
       }
-      if (details.containsKey("updated_country")) {
+      if (details != null && details.containsKey("updated_country")) {
         country = details.get("updated_country");
       }
 
@@ -307,32 +307,49 @@ public class ProfileCallbackEventListenerProvider  implements EventListenerProvi
     // Idea: making callbacks from Admin API looks like callbacks, generated from User Account.
     // For now: converting DELETE of resource type USER to DELETE_ACCOUNT event
 
-    if (Objects.requireNonNull(adminEvent.getResourceType()) == ResourceType.USER) {
-      String[] resourcePathParts = adminEvent.getResourcePath().split("/");
-      if (resourcePathParts.length == 2) {
-        String userId = resourcePathParts[1];
+    if (Objects.requireNonNull(adminEvent.getResourceType()) != ResourceType.USER) {
+      return;
+    }
+    String[] resourcePathParts = adminEvent.getResourcePath().split("/");
+    if (resourcePathParts.length != 2) {
+      return;
+    }
 
-        // Checking if second part of resource path is UUID
-        try {
-          UUID u = UUID.fromString(userId);
-        } catch (IllegalArgumentException ignored) {
-          logger.error(userId + " from resourcePath is not UUID");
-          return;
-        }
+    String userId = resourcePathParts[1];
+    String realmId = resourcePathParts[0];
 
-        if (Objects.requireNonNull(adminEvent.getOperationType()) == OperationType.DELETE) {
-          try {
-            logger.debug("logged admin event DELETE on USER for " + userId);
-            String userData = getUserInfo(userId, "DELETE_ACCOUNT", null);
-            String answer = postCallbacks(adminEvent.getRealmId(), userData);
-            if (!answer.isEmpty()) {
-              logger.debug(answer);
-            }
-          } catch (IOException ignored) {
-          }
-        }
+    // Checking if second part of resource path is UUID
+    try {
+      UUID u = UUID.fromString(userId);
+    } catch (IllegalArgumentException ignored) {
+      logger.error(userId + " from resourcePath is not UUID");
+      return;
+    }
 
+    String eventType = "";
+    switch (adminEvent.getOperationType()) {
+      case UPDATE: {
+        eventType = "UPDATE_PROFILE";
+        break;
       }
+      case DELETE: {
+        eventType = "DELETE_ACCOUNT";
+        break;
+      }
+    }
+    if (eventType.isEmpty()) {
+      return;
+    }
+
+    try {
+      logger.debug("logged admin event " + adminEvent.getOperationType() + " on USER for " + userId);
+      String userData = getUserInfo(userId, eventType, null);
+      String answer = postCallbacks(realmId, userData);
+      if (!answer.isEmpty()) {
+        logger.debug(answer);
+      }
+    } catch (IOException ignored) {
+      logger.debug("failed to process admin event for " + userId);
     }
   }
 

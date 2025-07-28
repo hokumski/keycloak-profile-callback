@@ -6,7 +6,7 @@
 
     <groupId>com.ndmsystems</groupId>
     <artifactId>keycloak-profile-callback</artifactId>
-    <version>1.22.4</version>
+    <version>1.22.5</version>
 
     <properties>
         <!-- Maven -->

@@ -9,6 +9,10 @@ This is an event listener, posting JSON with userdata after specific events to c
   - tac3m
 - REVOKE_GRANT
 
+Admin events on Users
+- UPDATE
+- DELETE
+
 ----
 
 Add to Keycloak config, to server -> profile section 
@@ -46,6 +50,8 @@ spi-eventsListener-profile-callback-authHeaderValue1-Bearer of blabla
 
 ## Release notes
 
+- 1.22.5
+  - handling UPDATE admin events on users (DELETE is already handled)
 - 1.22.4
   - "phone" attribute is excluded, "country" is added
 - 1.22.3

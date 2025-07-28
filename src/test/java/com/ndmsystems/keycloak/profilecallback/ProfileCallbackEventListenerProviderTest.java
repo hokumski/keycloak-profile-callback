@@ -42,8 +42,8 @@ public class ProfileCallbackEventListenerProviderTest {
     answer = answer.replace("{    ", "{").replace("  }", "}");
     //System.out.println(answer);
 
-    assertTrue(answer.contains("\"data\":{\"FirstName\":\"Кириллица\"}"));
-    assertTrue(answer.contains("\"x-keycloak-token\":\"test-token-12345\""));
+    assertTrue(answer.replace(" ", "").contains("\"data\":{\"FirstName\":\"Кириллица\"}"));
+    assertTrue(answer.replace(" ", "").contains("\"x-keycloak-token\":\"test-token-12345\""));
 
     callbacks = new ArrayList<>();
     callbacks.add(setting2);
